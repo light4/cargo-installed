@@ -17,7 +17,7 @@ cargo install --git https://github.com/light4/cargo-installed.git --force
 ## Usage
 
 ```bash
-~ on  master via 🐍 v3.10.2 🕙 12:59:50
+~ on  master 🕙 22:28:47
 ❯ cargo installed --help
 Easy manage programs installed by `cargo install`
 
