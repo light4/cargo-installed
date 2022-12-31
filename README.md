@@ -8,6 +8,9 @@ Easy manage programs installed by `cargo install`.
 ## Install
 
 ```bash
+# from crates.io
+cargo install cargo-installed --force
+# from git repo
 cargo install --git https://github.com/light4/cargo-installed.git --force
 ```
 
