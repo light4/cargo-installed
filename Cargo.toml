@@ -1,0 +1,37 @@
+[package]
+authors = ["lightning1141@gmail.com"]
+categories = ["development-tools::cargo-plugins"]
+description = "Easy manage programs installed by `cargo install`."
+documentation = "https://github.com/light4/cargo-installed"
+keywords = ["cargo", "installed", "subcommand"]
+license = "Apache-2.0/MIT"
+name = "cargo-installed"
+repository = "https://github.com/light4/cargo-installed"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+chrono = { version = "0.4", default-features = false, features = [
+    "std",
+    "clock",
+] }
+chrono-humanize = { git = "https://github.com/light4/chrono-humanize.git", tag = "0.2.3" }
+clap = { version = "4.0", default-features = false, features = [
+    "std",
+    "help",
+    "usage",
+    "derive",
+    "error-context",
+] }
+json = "0.12"
+semver = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+ureq = "2.5"
+xshell = "0.2"
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+strip = "debuginfo"
