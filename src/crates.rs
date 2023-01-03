@@ -20,6 +20,7 @@ pub enum KrateStatus {
     Unknown,
     Outdated,
     UpToDate,
+    Ignored,
 }
 
 impl KrateStatus {
@@ -29,6 +30,7 @@ impl KrateStatus {
             KrateStatus::Unknown => "?",
             KrateStatus::Outdated => "✗",
             KrateStatus::UpToDate => "✓",
+            KrateStatus::Ignored => ".",
         }
     }
 }
@@ -39,6 +41,7 @@ impl Display for KrateStatus {
             KrateStatus::Unknown => write!(f, "Unknow"),
             KrateStatus::Outdated => write!(f, "Outdated"),
             KrateStatus::UpToDate => write!(f, "UpToDate"),
+            KrateStatus::Ignored => write!(f, "Ignored"),
         }
     }
 }
@@ -58,6 +61,14 @@ impl InstalledKrate {
         let first = &krate_json["versions"][0];
 
         Ok(first["num"].to_string())
+    }
+
+    #[inline]
+    pub fn is_local(&self) -> bool {
+        if let Some(f) = &self.from {
+            return f.starts_with('/');
+        }
+        false
     }
 }
 
@@ -125,10 +136,7 @@ impl Krate {
 
     #[inline]
     pub fn is_local(&self) -> bool {
-        if let Some(f) = &self.installed.from {
-            return f.starts_with('/');
-        }
-        false
+        self.installed.is_local()
     }
 
     pub fn upgrade(&self) -> Result<()> {
@@ -144,12 +152,15 @@ impl Krate {
     }
 }
 
-pub fn get_all_krates() -> Result<Vec<Krate>> {
+pub fn get_all_krates(ignored: &[String], ignore_local: bool) -> Result<Vec<Krate>> {
     let mut result = vec![];
     let installed = get_installed()?;
 
     for i in &installed {
-        let (latest, status) = if let Ok(v) = i.get_latest_version() {
+        let (latest, status) = if ignored.contains(&i.name) || (ignore_local && i.is_local()) {
+            let s = KrateStatus::Ignored;
+            (s.to_string().to_ascii_lowercase(), s)
+        } else if let Ok(v) = i.get_latest_version() {
             let latest = Version::parse(&v).unwrap();
             let current = Version::parse(&i.version).unwrap();
             match latest.cmp(&current) {
@@ -158,7 +169,8 @@ pub fn get_all_krates() -> Result<Vec<Krate>> {
                 Ordering::Greater => (v, KrateStatus::Outdated),
             }
         } else {
-            ("unknown".to_string(), KrateStatus::Unknown)
+            let s = KrateStatus::Unknown;
+            (s.to_string().to_ascii_lowercase(), s)
         };
         let krate = Krate {
             installed: i.clone(),

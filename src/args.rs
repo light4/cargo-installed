@@ -19,9 +19,9 @@ pub struct Args {
     #[arg(short, long)]
     pub outdated: bool,
 
-    /// ignore installed from local space, enabled by default
-    #[arg(short = 'l', long, default_value_t = true)]
-    pub ignore_local: bool,
+    /// don't ignore installed from local space
+    #[arg(short = 'l', long)]
+    pub no_ignore_local: bool,
 
     /// ignore from upgrade
     #[arg(short, long)]
