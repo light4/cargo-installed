@@ -7,7 +7,7 @@ keywords = ["cargo", "installed", "subcommand"]
 license = "Apache-2.0/MIT"
 name = "cargo-installed"
 repository = "https://github.com/light4/cargo-installed"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 
 [dependencies]
