@@ -1,6 +1,7 @@
 use std::{cmp::Ordering, fmt::Display};
 
 use anyhow::{bail, Result};
+use colored::{ColoredString, Colorize};
 use semver::Version;
 use tracing::debug;
 use xshell::{cmd, Shell};
@@ -25,12 +26,12 @@ pub enum KrateStatus {
 
 impl KrateStatus {
     #[inline]
-    pub fn symbol(&self) -> &'static str {
+    pub fn symbol(&self) -> ColoredString {
         match self {
-            KrateStatus::Unknown => "?",
-            KrateStatus::Outdated => "✗",
-            KrateStatus::UpToDate => "✓",
-            KrateStatus::Ignored => ".",
+            KrateStatus::Unknown => "?".dimmed(),
+            KrateStatus::Outdated => "✗".red(),
+            KrateStatus::UpToDate => "✓".normal(),
+            KrateStatus::Ignored => ".".dimmed(),
         }
     }
 }
