@@ -1,8 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
-use crates::print_krates;
 use tracing::debug;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use crates::print_krates;
 
 use crate::{
     args::Command,

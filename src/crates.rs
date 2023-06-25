@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fmt::Display};
+use std::{cmp::Ordering, fmt::Display, thread};
 
 use anyhow::{bail, Result};
 use semver::Version;
@@ -153,34 +153,47 @@ impl Krate {
 }
 
 pub fn get_all_krates(ignored: &[String], ignore_local: bool) -> Result<Vec<Krate>> {
-    let mut result = vec![];
     let installed = get_installed()?;
 
-    for i in &installed {
-        let (latest, status) = if ignored.contains(&i.name) || (ignore_local && i.is_local()) {
-            let s = KrateStatus::Ignored;
-            (s.to_string().to_ascii_lowercase(), s)
-        } else if let Ok(v) = i.get_latest_version() {
-            let latest = Version::parse(&v).unwrap();
-            let current = Version::parse(&i.version).unwrap();
-            match latest.cmp(&current) {
-                Ordering::Equal => (v, KrateStatus::UpToDate),
-                Ordering::Less => (v, KrateStatus::UpToDate),
-                Ordering::Greater => (v, KrateStatus::Outdated),
-            }
-        } else {
-            let s = KrateStatus::Unknown;
-            (s.to_string().to_ascii_lowercase(), s)
-        };
-        let krate = Krate {
-            installed: i.clone(),
-            latest,
-            status,
-        };
-        result.push(krate);
-    }
+    let krates: Vec<Krate> = thread::scope(|scope| {
+        let mut threads = vec![];
 
-    Ok(result)
+        for i in &installed {
+            let thread_handle = scope.spawn(|| {
+                let (latest, status) =
+                    if ignored.contains(&i.name) || (ignore_local && i.is_local()) {
+                        let s = KrateStatus::Ignored;
+                        (s.to_string().to_ascii_lowercase(), s)
+                    } else if let Ok(v) = i.get_latest_version() {
+                        let latest = Version::parse(&v).unwrap();
+                        let current = Version::parse(&i.version).unwrap();
+                        match latest.cmp(&current) {
+                            Ordering::Equal => (v, KrateStatus::UpToDate),
+                            Ordering::Less => (v, KrateStatus::UpToDate),
+                            Ordering::Greater => (v, KrateStatus::Outdated),
+                        }
+                    } else {
+                        let s = KrateStatus::Unknown;
+                        (s.to_string().to_ascii_lowercase(), s)
+                    };
+
+                Krate {
+                    installed: i.clone(),
+                    latest,
+                    status,
+                }
+            });
+
+            threads.push(thread_handle);
+        }
+
+        threads
+            .into_iter()
+            .map(|thread_handle| thread_handle.join().unwrap())
+            .collect()
+    });
+
+    Ok(krates)
 }
 
 pub fn print_krates(krates: &[Krate], outdated_only: bool) {
