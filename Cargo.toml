@@ -19,6 +19,7 @@ clap = { version = "4.3", default-features = false, features = [
     "derive",
     "error-context",
 ] }
+colored = "2.0.0"
 json = "0.12"
 semver = "1.0"
 tracing = "0.1"
