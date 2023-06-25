@@ -184,25 +184,47 @@ pub fn get_all_krates(ignored: &[String], ignore_local: bool) -> Result<Vec<Krat
 }
 
 pub fn print_krates(krates: &[Krate], outdated_only: bool) {
+    //compute max length of each segment
+    let mut name = "name".len();
+    let mut installed = "installed".len();
+    let mut latest = "latest".len();
+
+    for krate in krates {
+        name = name.max(krate.installed.name.len());
+        installed = installed.max(krate.installed.version.len());
+        latest = latest.max(krate.latest.len());
+    }
+
+    //add padding to text
+    name += 3;
+    installed += 3;
+    latest += 3;
+
+    // print header
     if outdated_only {
-        println!("{:18} {:14} {:14}", "Name", "Installed", "Latest");
+        println!(
+            "{:name$}{:installed$}{:latest$}",
+            "Name", "Installed", "Latest"
+        );
     } else {
         println!(
-            "{:18} {:14} {:14} {:8}",
+            "{:name$}{:installed$}{:latest$}{:6}",
             "Name", "Installed", "Latest", "Status"
         );
     }
+
+    // print crates data
     for k in krates {
         if outdated_only {
             if k.status == KrateStatus::Outdated {
                 println!(
-                    "{:18} {:14} {:14}",
+                    "{:name$}{:installed$}{:latest$}",
                     k.installed.name, k.installed.version, k.latest
                 );
             }
         } else {
             println!(
-                "{:18} {:14} {:14} {:8}",
+                "{:name$}{:installed$}{:latest$}{:^7}",
                 k.installed.name,
                 k.installed.version,
                 k.latest,
